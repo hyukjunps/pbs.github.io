@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>와이파이 인증</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+    <style>
+        :root {
+            --toss-blue: #3182f6;
+            --toss-grey-100: #f2f4f6;
+            --toss-grey-600: #6b7684;
+            --toss-grey-900: #191f28;
+            --toss-red: #f04452;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            color: var(--toss-grey-900);
+            overflow: hidden;
+        }
+
+        /* 메인 컨테이너 (토스 앱처럼 하단 버튼 고정 구조) */
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            padding: 40px 24px;
+            justify-content: space-between;
+        }
+
+        /* 상단 텍스트 영역 */
+        .header-text {
+            margin-top: 40px;
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .header-text h1 {
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 1.4;
+            margin: 0 0 12px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .header-text p {
+            font-size: 15px;
+            color: var(--toss-grey-600);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* 중앙 입력 필드 영역 */
+        .input-section {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .toss-input {
+            width: 100%;
+            border: none;
+            border-bottom: 2px solid #e5e8eb;
+            padding: 12px 0;
+            font-size: 24px;
+            font-weight: 600;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .toss-input:focus {
+            border-bottom-color: var(--toss-blue);
+        }
+
+        /* 에러 메시지 */
+        .error-message {
+            color: var(--toss-red);
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+            min-height: 20px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        /* 하단 고정 버튼 */
+        .button-group {
+            width: 100%;
+            animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .toss-btn {
+            width: 100%;
+            height: 56px;
+            background-color: var(--toss-blue);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 4px 12px rgba(49, 130, 246, 0.2);
+        }
+
+        .toss-btn:active {
+            background-color: #1b64da;
+            transform: scale(0.98);
+        }
+
+        /* ---------------- 애니메이션 정의 ---------------- */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 입력창 오류 시 흔들리는 애니메이션 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* 성공 화면 스타일 */
+        .success-view {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            padding: 24px;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #e8f3ff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--toss-blue);
+            font-size: 32px;
+            margin-bottom: 24px;
+            animation: scaleUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes scaleUp {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="main-view">
+        <div class="header-text">
+            <h1>인터넷 사용을 위해<br>관리자 인증번호를 입력해주세요</h1>
+            <p>인증번호를 모르신다면 관리자에게 문의해주세요.</p>
+        </div>
+
+        <div class="input-section">
+            <div class="input-wrapper" id="input-block">
+                <input type="input" pattern="\d*" inputmode="numeric" id="code-input" class="toss-input" placeholder="인증번호 입력" autocomplete="off">
+                <div class="error-message" id="error-txt">잘못된 인증번호입니다. 다시 확인해주세요.</div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="toss-btn" id="next-btn">확인</button>
+        </div>
+    </div>
+
+    <div class="success-view" id="success-view">
+        <div class="success-icon">✓</div>
+        <h1 style="font-size: 24px; font-weight: 700; margin: 0 0 12px 0;">인증 완료</h1>
+        <p style="color: var(--toss-grey-600); margin: 0; font-size: 15px; line-height: 1.6;">안전하게 와이파이에 연결되었습니다.<br>지금부터 인터넷을 사용할 수 있습니다.</p>
+    </div>
+
+    <script>
+        const mainView = document.getElementById('main-view');
+        const successView = document.getElementById('success-view');
+        const codeInput = document.getElementById('code-input');
+        const inputBlock = document.getElementById('input-block');
+        const errorTxt = document.getElementById('error-txt');
+        const nextBtn = document.getElementById('next-btn');
+
+        // 💡 [핵심 로직] 매일 바뀌는 정답 계산 함수 (월 * 일)
+        function getTodayAnswer() {
+            const today = new Date();
+            const month = today.getMonth() + 1; // getMonth()는 0부터 시작하므로 +1
+            const date = today.getDate();
+            
+            return (month * date).toString(); // 문정형태로 반환
+        }
+
+        // 사용자가 화면을 터치하면 바로 전체화면 모드로 진입 유도하기
+        // (단, 완벽한 캡티브 환경 보안에 따라 브라우저 상단 주소창은 남을 수 있음)
+        document.body.addEventListener('click', function() {
+            const docElm = document.documentElement;
+            if (!document.fullscreenElement) {
+                if (docElm.requestFullscreen) docElm.requestFullscreen();
+                else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
+            }
+        }, { once: true }); // 처음 한 번만 실행
+
+        // 인증 확인 프로세스
+        function validateCode() {
+            const correctAnswer = getTodayAnswer();
+            const userAnswer = codeInput.value.trim();
+
+            if (userAnswer === correctAnswer) {
+                // 성공 시: 전체화면 해제하고 성공 토스 뷰 전환
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+
+                mainView.style.display = 'none';
+                successView.style.display = 'flex';
+            } else {
+                // 실패 시: 토스 앱 느낌의 역동적인 셰이크 효과 및 에러 메시지
+                errorTxt.style.opacity = '1';
+                inputBlock.classList.add('shake');
+                codeInput.value = '';
+                codeInput.focus();
+
+                // 애니메이션이 끝나면 클래스 제거 (재실행 가능하도록)
+                setTimeout(() => {
+                    inputBlock.classList.remove('shake');
+                }, 400);
+            }
+        }
+
+        // 버튼 클릭 및 엔터키 이벤트 바인딩
+        nextBtn.addEventListener('click', validateCode);
+        codeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') validateCode();
+        });
+
+        // 입력창에 다시 타이핑을 시작하면 에러 메시지 숨기기
+        codeInput.addEventListener('input', () => {
+            errorTxt.style.opacity = '0';
+        });
+    </script>
+</body>
+</html>
