@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>방송부 조명 안내</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{font-family:'Noto Sans KR',sans-serif;background:#F4F4F4;color:#191919;min-height:100vh;overflow-x:hidden;}
+
+.screen{display:none;min-height:100vh;}
+.screen.active{display:block;}
+
+/* ── 애니메이션 ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes popIn{from{opacity:0;transform:scale(.75);}to{opacity:1;transform:scale(1);}}
+@keyframes slideRight{from{opacity:0;transform:translateX(-16px);}to{opacity:1;transform:translateX(0);}}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+@keyframes shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
+@keyframes blobFloat{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(12px,-18px) scale(1.04);}66%{transform:translate(-10px,10px) scale(.97);}}
+
+.anim-fadeup{animation:fadeUp .45s cubic-bezier(.22,.68,0,1.15) both;}
+.anim-fadein{animation:fadeIn .4s ease both;}
+.anim-popin{animation:popIn .5s cubic-bezier(.22,.68,0,1.3) both;}
+
+/* ── 온보딩 ── */
+#s-onboard{background:#0D0D0D;min-height:100vh;display:none;flex-direction:column;justify-content:space-between;padding-bottom:48px;position:relative;overflow:hidden;}
+#s-onboard.active{display:flex;}
+.ob-blob{position:absolute;border-radius:50%;filter:blur(72px);will-change:transform;}
+.blob1{width:340px;height:340px;background:#5B21B6;top:-100px;left:-80px;animation:blobFloat 7s ease-in-out infinite;}
+.blob2{width:260px;height:260px;background:#BE185D;top:80px;right:-60px;animation:blobFloat 9s ease-in-out infinite reverse;}
+.blob3{width:200px;height:200px;background:#1D4ED8;bottom:160px;left:40px;animation:blobFloat 11s ease-in-out infinite 2s;}
+.ob-content{position:relative;z-index:2;padding:72px 28px 0;}
+.ob-badge{display:inline-block;background:rgba(255,255,255,.1);border:0.5px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);font-size:12px;font-weight:700;padding:6px 14px;border-radius:100px;letter-spacing:.05em;animation:fadeIn .6s .1s both;}
+.ob-icon{font-size:64px;margin:22px 0 20px;display:block;animation:popIn .6s .2s cubic-bezier(.22,.68,0,1.3) both;}
+.ob-title{font-size:34px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:14px;animation:fadeUp .5s .3s both;}
+.ob-sub{font-size:16px;color:rgba(255,255,255,.42);line-height:1.7;animation:fadeUp .5s .4s both;}
+.ob-stats{display:flex;gap:10px;padding:36px 28px 0;position:relative;z-index:2;animation:fadeUp .5s .5s both;}
+.ob-stat{flex:1;background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.1);border-radius:20px;padding:18px 14px;text-align:center;}
+.ob-stat-num{font-size:28px;font-weight:900;color:#fff;line-height:1;}
+.ob-stat-label{font-size:11px;color:rgba(255,255,255,.35);margin-top:6px;font-weight:500;}
+.ob-bottom{padding:0 28px;position:relative;z-index:2;animation:fadeUp .5s .6s both;}
+.btn-cta{width:100%;background:#fff;color:#0D0D0D;border:none;border-radius:18px;padding:20px;font-size:18px;font-weight:900;font-family:'Noto Sans KR',sans-serif;cursor:pointer;letter-spacing:-.3px;transition:transform .15s,background .15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-cta:active{transform:scale(.97);}
+.btn-cta-arrow{font-size:22px;transition:transform .2s;}
+.btn-cta:hover .btn-cta-arrow{transform:translateX(4px);}
+
+/* ── 공통 앱바 ── */
+.app-bar{background:#F4F4F4;padding:52px 20px 0;position:sticky;top:0;z-index:20;}
+.app-bar-inner{display:flex;align-items:center;gap:12px;padding-bottom:14px;}
+.btn-back{width:40px;height:40px;border-radius:50%;background:#fff;border:.5px solid #E4E4E4;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;color:#191919;font-weight:300;transition:transform .15s,background .15s;flex-shrink:0;}
+.btn-back:active{transform:scale(.93);background:#EEE;}
+.bar-title{font-size:18px;font-weight:700;color:#191919;}
+
+/* ── 검색바 ── */
+.search-wrap{padding:0 16px 14px;background:#F4F4F4;}
+.search-box{display:flex;align-items:center;background:#fff;border:.5px solid #E4E4E4;border-radius:16px;padding:0 16px;gap:10px;transition:border-color .2s,box-shadow .2s;}
+.search-box:focus-within{border-color:#191919;box-shadow:0 0 0 3px rgba(25,25,25,.07);}
+.search-ico{font-size:17px;color:#BBB;flex-shrink:0;}
+.search-input{flex:1;border:none;outline:none;font-size:15px;font-family:'Noto Sans KR',sans-serif;padding:14px 0;background:transparent;color:#191919;}
+.search-input::placeholder{color:#C0C0C0;}
+.search-clr{font-size:13px;color:#BBB;cursor:pointer;display:none;width:22px;height:22px;background:#EBEBEB;border-radius:50%;display:none;align-items:center;justify-content:center;}
+
+/* ── 홈 ── */
+#s-home{background:#F4F4F4;}
+.home-top{background:#fff;padding:52px 24px 28px;}
+.home-eyebrow{font-size:12px;font-weight:700;color:#999;letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;animation:fadeIn .4s .05s both;}
+.home-h1{font-size:28px;font-weight:900;color:#191919;line-height:1.2;margin-bottom:6px;animation:fadeUp .4s .1s both;}
+.home-desc{font-size:14px;color:#AAA;line-height:1.55;animation:fadeUp .4s .15s both;}
+.home-body{padding:16px 16px 48px;display:flex;flex-direction:column;gap:10px;}
+.menu-card{background:#fff;border-radius:22px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:none;width:100%;font-family:'Noto Sans KR',sans-serif;text-align:left;transition:transform .18s,box-shadow .18s;animation:fadeUp .4s both;}
+.menu-card:nth-child(1){animation-delay:.07s;}
+.menu-card:nth-child(2){animation-delay:.12s;}
+.menu-card:nth-child(3){animation-delay:.17s;}
+.menu-card:nth-child(4){animation-delay:.22s;}
+.menu-card:active{transform:scale(.97);}
+.mc-left{display:flex;align-items:center;gap:14px;}
+.mc-icon{width:48px;height:48px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.mc-title{font-size:16px;font-weight:700;color:#191919;margin-bottom:3px;}
+.mc-sub{font-size:12px;color:#BBB;}
+.mc-chev{font-size:22px;color:#D4D4D4;font-weight:300;}
+.contact-row{display:flex;gap:10px;animation:fadeUp .4s .27s both;}
+.contact-btn-ig{flex:1;background:#191919;border-radius:18px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;text-decoration:none;transition:transform .15s;}
+.contact-btn-ig:active{transform:scale(.97);}
+.cb-label{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:3px;font-weight:600;}
+.cb-val{font-size:14px;font-weight:700;color:#fff;}
+.cb-arrow{font-size:18px;color:rgba(255,255,255,.35);}
+.contact-btn-kt{flex:1;background:#FEE500;border-radius:18px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;border:none;cursor:pointer;font-family:'Noto Sans KR',sans-serif;text-align:left;transition:transform .15s;}
+.contact-btn-kt:active{transform:scale(.97);}
+.cb-label-dark{font-size:11px;color:rgba(0,0,0,.4);margin-bottom:3px;font-weight:600;}
+.cb-val-dark{font-size:14px;font-weight:700;color:#191919;}
+.cb-arrow-dark{font-size:18px;color:rgba(0,0,0,.25);}
+
+/* ── 조명 번호표 ── */
+#s-lights{background:#F4F4F4;}
+.lights-body{padding:2px 16px 48px;}
+.sec-label{font-size:12px;font-weight:700;color:#AAA;letter-spacing:.07em;padding:18px 4px 9px;text-transform:uppercase;}
+.light-group{background:#fff;border-radius:22px;overflow:hidden;margin-bottom:10px;}
+.lri{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:.5px solid #F2F2F2;transition:background .12s;cursor:default;animation:slideRight .3s both;}
+.lri:last-child{border-bottom:none;}
+.lri-l{display:flex;align-items:center;gap:14px;}
+.lri-badge{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;flex-shrink:0;}
+.lri-name{font-size:15px;font-weight:700;color:#191919;}
+.lri-note{font-size:12px;color:#C0C0C0;margin-top:2px;}
+.lri-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;}
+.no-result{text-align:center;padding:56px 24px;color:#C0C0C0;font-size:14px;line-height:1.7;}
+
+/* ── 조합 ── */
+#s-combos{background:#F4F4F4;}
+.combos-body{padding:2px 16px 48px;}
+.tip-pill{background:#FFFAEA;border:.5px solid #FFE566;border-radius:18px;padding:16px 18px;margin-bottom:10px;animation:fadeUp .35s both;}
+.tip-pill-t{font-size:13px;font-weight:700;color:#7A6000;margin-bottom:5px;}
+.tip-pill-b{font-size:13px;color:#7A6000;line-height:1.7;}
+.combo-group{background:#fff;border-radius:22px;overflow:hidden;margin-bottom:10px;}
+.combo-row{display:flex;align-items:center;padding:15px 18px;border-bottom:.5px solid #F2F2F2;animation:fadeUp .3s both;}
+.combo-row:last-child{border-bottom:none;}
+.ck{font-size:17px;font-weight:900;color:#191919;min-width:78px;}
+.csep{font-size:15px;color:#D4D4D4;margin:0 8px;}
+.cv{font-size:14px;color:#555;font-weight:500;flex:1;}
+.csw{width:18px;height:18px;border-radius:50%;flex-shrink:0;}
+
+/* ── 규칙 ── */
+#s-rules{background:#F4F4F4;}
+.rules-body{padding:2px 16px 48px;}
+.rule-card{background:#fff;border-radius:22px;padding:22px 20px 18px;margin-bottom:10px;animation:fadeUp .4s both;}
+.rule-card:nth-child(1){animation-delay:.05s;}
+.rule-card:nth-child(2){animation-delay:.1s;}
+.rule-card:nth-child(3){animation-delay:.15s;}
+.rule-card:nth-child(4){animation-delay:.2s;}
+.rule-card:nth-child(5){animation-delay:.25s;}
+.rc-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:11px;}
+.rc-num{min-width:26px;height:26px;background:#191919;color:#fff;border-radius:9px;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px;flex-shrink:0;}
+.rc-title{font-size:16px;font-weight:700;color:#191919;line-height:1.35;}
+.rc-body{font-size:14px;color:#666;line-height:1.8;padding-left:38px;}
+.eg-box{background:#F7F7F7;border-radius:14px;padding:13px 15px;margin-top:10px;}
+.eg-ln{font-size:13px;line-height:1.8;color:#444;display:flex;gap:7px;}
+.eg-ln .ei{flex-shrink:0;font-weight:700;}
+.eg-ln.ok .ei{color:#16A34A;}
+.eg-ln.ng .ei{color:#DC2626;}
+.eg-ln .et{flex:1;}
+.eg-sub{font-size:11.5px;color:#AAA;margin-top:2px;padding-left:18px;line-height:1.6;}
+.goto-lights{display:flex;align-items:center;justify-content:space-between;background:#191919;border-radius:18px;padding:18px 20px;cursor:pointer;border:none;width:100%;font-family:'Noto Sans KR',sans-serif;text-align:left;transition:transform .15s;margin-bottom:10px;animation:fadeUp .4s .3s both;}
+.goto-lights:active{transform:scale(.97);}
+.gtl-left .gtl-label{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:3px;font-weight:600;}
+.gtl-left .gtl-val{font-size:15px;font-weight:700;color:#fff;}
+.gtl-arrow{font-size:22px;color:rgba(255,255,255,.35);}
+.contact-row-rules{display:flex;gap:10px;margin-bottom:10px;animation:fadeUp .4s .35s both;}
+
+/* ── 특수 ── */
+#s-special{background:#F4F4F4;}
+.special-body{padding:2px 16px 48px;}
+.special-hero{background:#0D0D0D;border-radius:22px;padding:24px 20px;margin-bottom:10px;position:relative;overflow:hidden;animation:fadeUp .4s both;}
+.sh-blob1{position:absolute;width:180px;height:180px;background:#5B21B6;border-radius:50%;filter:blur(50px);opacity:.35;top:-60px;right:-40px;}
+.sh-blob2{position:absolute;width:140px;height:140px;background:#BE185D;border-radius:50%;filter:blur(50px);opacity:.3;bottom:-40px;left:20px;}
+.sh-label{font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.07em;text-transform:uppercase;margin-bottom:16px;font-weight:700;position:relative;z-index:1;}
+.sh-items{display:flex;flex-direction:column;gap:14px;position:relative;z-index:1;}
+.sh-item{display:flex;align-items:center;gap:13px;}
+.sh-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.45);flex-shrink:0;}
+.sh-name{font-size:16px;font-weight:700;color:#fff;}
+.sh-desc{font-size:12px;color:rgba(255,255,255,.38);margin-top:1px;}
+.sn-card{background:#fff;border-radius:22px;padding:20px;margin-bottom:10px;animation:fadeUp .4s .1s both;}
+.sn-title{font-size:15px;font-weight:700;color:#191919;margin-bottom:7px;}
+.sn-body{font-size:14px;color:#666;line-height:1.75;}
+.sn-eg{background:#F7F7F7;border-radius:12px;padding:11px 14px;margin-top:10px;font-size:13px;color:#555;line-height:1.65;}
+</style>
+</head>
+<body>
+
+<!-- ────── 온보딩 ────── -->
+<div id="s-onboard" class="screen active">
+  <div class="ob-blob blob1"></div>
+  <div class="ob-blob blob2"></div>
+  <div class="ob-blob blob3"></div>
+  <div class="ob-content">
+    <div class="ob-badge">풍산고 방송부</div>
+    <span class="ob-icon">🎭</span>
+    <div class="ob-title">멋진 무대를<br>만들어봐요</div>
+    <div class="ob-sub">조명 번호만 알면<br>원하는 분위기를 연출할 수 있어요</div>
+  </div>
+  <div class="ob-stats">
+    <div class="ob-stat"><div class="ob-stat-num">14</div><div class="ob-stat-label">조명 번호</div></div>
+    <div class="ob-stat"><div class="ob-stat-num">8</div><div class="ob-stat-label">색 조명</div></div>
+    <div class="ob-stat"><div class="ob-stat-num">4</div><div class="ob-stat-label">특수 조명</div></div>
+  </div>
+  <div class="ob-bottom">
+    <button class="btn-cta" onclick="go('s-home')">
+      시작하기 <span class="btn-cta-arrow">→</span>
+    </button>
+  </div>
+</div>
+
+<!-- ────── 홈 ────── -->
+<div id="s-home" class="screen">
+  <div class="home-top">
+    <div class="home-eyebrow">풍산고 방송부</div>
+    <div class="home-h1">무대 조명 가이드</div>
+    <div class="home-desc">번호로 요청하면 더 멋진 무대가 돼요</div>
+  </div>
+  <div class="home-body">
+    <button class="menu-card" onclick="go('s-lights')">
+      <div class="mc-left">
+        <div class="mc-icon" style="background:#EEEEFF;">💡</div>
+        <div><div class="mc-title">조명 번호표</div><div class="mc-sub">1~14번 전체 · 검색 가능</div></div>
+      </div>
+      <div class="mc-chev">›</div>
+    </button>
+    <button class="menu-card" onclick="go('s-combos')">
+      <div class="mc-left">
+        <div class="mc-icon" style="background:#FFF5E8;">🎨</div>
+        <div><div class="mc-title">조합 색감 가이드</div><div class="mc-sub">번호 조합이 만드는 색</div></div>
+      </div>
+      <div class="mc-chev">›</div>
+    </button>
+    <button class="menu-card" onclick="go('s-rules')">
+      <div class="mc-left">
+        <div class="mc-icon" style="background:#EDFFF3;">📋</div>
+        <div><div class="mc-title">요청 규칙</div><div class="mc-sub">가사에 번호 적는 방법</div></div>
+      </div>
+      <div class="mc-chev">›</div>
+    </button>
+    <button class="menu-card" onclick="go('s-special')">
+      <div class="mc-left">
+        <div class="mc-icon" style="background:#1A1A1A;">✨</div>
+        <div><div class="mc-title" style="color:#191919;">특수 조명</div><div class="mc-sub">사이키 · 별모양 · 파란공</div></div>
+      </div>
+      <div class="mc-chev">›</div>
+    </button>
+    <div class="contact-row">
+      <a class="contact-btn-ig" href="https://www.instagram.com/hyukjun._.ps?igsh=Nng5MnYydjVuNTd1" target="_blank">
+        <div><div class="cb-label">인스타그램</div><div class="cb-val">@hyukjun._.ps</div></div>
+        <div class="cb-arrow">↗</div>
+      </a>
+      <div class="contact-btn-kt" onclick="alert('카카오톡 개인톡으로 방송부원에게 문의해주세요!')">
+        <div><div class="cb-label-dark">카카오톡</div><div class="cb-val-dark">개인톡 문의</div></div>
+        <div class="cb-arrow-dark">💬</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ────── 조명 번호표 ────── -->
+<div id="s-lights" class="screen">
+  <div class="app-bar">
+    <div class="app-bar-inner">
+      <button class="btn-back" onclick="go('s-home')">‹</button>
+      <div class="bar-title">조명 번호표</div>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <div class="search-box">
+      <span class="search-ico">🔍</span>
+      <input class="search-input" id="lsearch" type="text" placeholder="번호 또는 색 이름으로 검색" oninput="filterLights(this.value)">
+      <span class="search-clr" id="lclr" onclick="clearLS()">✕</span>
+    </div>
+  </div>
+  <div class="lights-body" id="lights-body"></div>
+</div>
+
+<!-- ────── 조합 가이드 ────── -->
+<div id="s-combos" class="screen">
+  <div class="app-bar">
+    <div class="app-bar-inner">
+      <button class="btn-back" onclick="go('s-home')">‹</button>
+      <div class="bar-title">조합 색감 가이드</div>
+    </div>
+  </div>
+  <div class="combos-body">
+    <div class="tip-pill">
+      <div class="tip-pill-t">💡 색 조명만 단독 사용하면 너무 진해요</div>
+      <div class="tip-pill-b"><b>1(흰색) + 색번호</b> 조합을 추천해요.<br>사이키에 색을 넣으려면 <b>14 + 색번호</b>로 요청하세요.</div>
+    </div>
+    <div class="sec-label">기본 조합</div>
+    <div class="combo-group">
+      <div class="combo-row" style="animation-delay:.05s"><div class="ck">6+7</div><div class="csep">→</div><div class="cv">노랑</div><div class="csw" style="background:#E2C22A;"></div></div>
+      <div class="combo-row" style="animation-delay:.08s"><div class="ck">6+7+8</div><div class="csep">→</div><div class="cv">노랑</div><div class="csw" style="background:#E2C22A;"></div></div>
+      <div class="combo-row" style="animation-delay:.11s"><div class="ck">7+10</div><div class="csep">→</div><div class="cv">하늘색</div><div class="csw" style="background:#4ECDE4;"></div></div>
+    </div>
+    <div class="sec-label">8번(노랑) 조합</div>
+    <div class="combo-group">
+      <div class="combo-row" style="animation-delay:.05s"><div class="ck">8+9</div><div class="csep">→</div><div class="cv">밝은 흰색 + 노랑 (핑크 조금)</div><div class="csw" style="background:#FFF3B0;border:.5px solid #EEE;"></div></div>
+      <div class="combo-row" style="animation-delay:.08s"><div class="ck">8+10</div><div class="csep">→</div><div class="cv">연한 핑크 (연한 보라)</div><div class="csw" style="background:#E8C8F0;"></div></div>
+      <div class="combo-row" style="animation-delay:.11s"><div class="ck">8+11</div><div class="csep">→</div><div class="cv">연한 살구색</div><div class="csw" style="background:#F9C7A0;"></div></div>
+      <div class="combo-row" style="animation-delay:.14s"><div class="ck">8+12</div><div class="csep">→</div><div class="cv">진한 핑크 + 보라</div><div class="csw" style="background:#C86BAE;"></div></div>
+      <div class="combo-row" style="animation-delay:.17s"><div class="ck">8+13</div><div class="csep">→</div><div class="cv">진한 핑크 + 보라</div><div class="csw" style="background:#C06BA8;"></div></div>
+    </div>
+    <div class="sec-label">사이키 조합</div>
+    <div class="combo-group">
+      <div class="combo-row" style="animation-delay:.05s"><div class="ck">14+색</div><div class="csep">→</div><div class="cv">사이키에 색감 추가</div><div class="csw" style="background:#191919;"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ────── 요청 규칙 ────── -->
+<div id="s-rules" class="screen">
+  <div class="app-bar">
+    <div class="app-bar-inner">
+      <button class="btn-back" onclick="go('s-home')">‹</button>
+      <div class="bar-title">요청 규칙</div>
+    </div>
+  </div>
+  <div class="rules-body">
+
+    <div class="rule-card">
+      <div class="rc-head"><div class="rc-num">1</div><div class="rc-title">가사 옆에 조명 번호를 괄호로 적어주세요</div></div>
+      <div class="rc-body">
+        노래 또는 가사 옆에 사용할 조명 번호를 적어주세요. 색 이름이 아닌 번호로 적어야 해요.
+        <div class="eg-box">
+          <div class="eg-ln ok"><span class="ei">✓</span><span class="et">어떻게 이별까지 사랑하겠어. 널 사랑하는거지 (1+10)</span></div>
+          <div class="eg-ln ng"><span class="ei">✗</span><span class="et">어떻게 이별까지 사랑하겠어. 널 사랑하는거지 (빨간색)</span></div>
+          <div class="eg-sub">이 가사에서 파란색(10번) 조명을 사용한다는 뜻이에요</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rc-head"><div class="rc-num">2</div><div class="rc-title">박자 빠른 곡에서 계속 색 바꾸기는 어려워요</div></div>
+      <div class="rc-body">
+        박자가 빠른 곡에서 매 소절마다 완전히 다른 색으로 바꾸는 건 어렵지만, 두 색을 번갈아 쓰거나 사이키를 활용하면 가능해요.
+        <div class="eg-box">
+          <div class="eg-ln ng"><span class="ei">✗</span><span class="et">Cheer up baby (1+10) Cheer up baby (1+6) 좀 더 힘을 내 (1+9)</span></div>
+          <div class="eg-sub">세 가지 완전히 다른 색으로 계속 바꾸는 건 어려워요</div>
+        </div>
+        <div class="eg-box" style="margin-top:8px;">
+          <div class="eg-ln ok"><span class="ei">✓</span><span class="et">Cheer up baby (14) Cheer up baby (11+14) 좀 더 힘을 내 (1+11)</span></div>
+          <div class="eg-sub">사이키(14)와 핑크 번갈아 — 조명 상황에 따라 가능해요</div>
+        </div>
+        <div class="eg-box" style="margin-top:8px;">
+          <div class="eg-ln ok"><span class="ei">✓</span><span class="et">Cheer up baby (1+6) Cheer up baby (1+7) 좀 더 힘을 내 (1+6)</span></div>
+          <div class="eg-sub">빨강(6)↔초록(7) 두 색 번갈아 사용 — 가능해요</div>
+        </div>
+        <div class="eg-box" style="margin-top:8px;">
+          <div class="eg-ln ok"><span class="ei">✓</span><span class="et">Cheer up baby (1+6) Cheer up baby (1+6+7) 좀 더 힘을 내 (1+6)</span></div>
+          <div class="eg-sub">빨강과 빨강+초록 번갈아 — 가능해요</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rc-head"><div class="rc-num">3</div><div class="rc-title">특수 조명은 방송부 재량이에요</div></div>
+      <div class="rc-body">
+        별, 공 같은 특수 조명은 방송부가 결정해요. 필요하다면 문의해주세요. 조명 색을 오래 유지할 때 특수 사이키를 쓸 수 있어요.
+        <div class="eg-box">
+          <div class="eg-ln ok"><span class="ei">✓</span><span class="et">"Like Jennie에서 좀더 화려한 사이키 사용이 가능한가요?"</span></div>
+          <div class="eg-sub">원하는 분위기를 설명해서 문의하면 방송부가 판단해드려요</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-card">
+      <div class="rc-head"><div class="rc-num">4</div><div class="rc-title">조명 문의는 여기로!</div></div>
+      <div class="rc-body" style="padding-left:0;margin-top:2px;">
+        <div class="contact-row" style="margin-bottom:0;">
+          <a class="contact-btn-ig" href="https://www.instagram.com/hyukjun._.ps?igsh=Nng5MnYydjVuNTd1" target="_blank" style="border-radius:14px;">
+            <div><div class="cb-label">인스타그램</div><div class="cb-val">@hyukjun._.ps</div></div>
+            <div class="cb-arrow">↗</div>
+          </a>
+          <div class="contact-btn-kt" style="border-radius:14px;" onclick="alert('카카오톡 개인톡으로 방송부원에게 문의해주세요!')">
+            <div><div class="cb-label-dark">카카오톡</div><div class="cb-val-dark">개인톡 문의</div></div>
+            <div class="cb-arrow-dark">💬</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="goto-lights" onclick="go('s-lights')">
+      <div class="gtl-left"><div class="gtl-label">바로 확인하기</div><div class="gtl-val">조명 번호표 보러 가기</div></div>
+      <div class="gtl-arrow">›</div>
+    </button>
+
+  </div>
+</div>
+
+<!-- ────── 특수 조명 ────── -->
+<div id="s-special" class="screen">
+  <div class="app-bar">
+    <div class="app-bar-inner">
+      <button class="btn-back" onclick="go('s-home')">‹</button>
+      <div class="bar-title">특수 조명</div>
+    </div>
+  </div>
+  <div class="special-body">
+    <div class="special-hero">
+      <div class="sh-blob1"></div>
+      <div class="sh-blob2"></div>
+      <div class="sh-label">방송부에게 요청하세요</div>
+      <div class="sh-items">
+        <div class="sh-item"><div class="sh-dot"></div><div><div class="sh-name">특수 사이키</div><div class="sh-desc">화려한 멀티컬러 효과</div></div></div>
+        <div class="sh-item"><div class="sh-dot"></div><div><div class="sh-name">무대 별모양</div><div class="sh-desc">무대 위 별 패턴</div></div></div>
+        <div class="sh-item"><div class="sh-dot"></div><div><div class="sh-name">무대 파란공</div><div class="sh-desc">파란 구체 조명</div></div></div>
+        <div class="sh-item"><div class="sh-dot"></div><div><div class="sh-name">기타</div><div class="sh-desc">방송부 문의</div></div></div>
+      </div>
+    </div>
+    <div class="sn-card">
+      <div class="sn-title">특수 사이키는 언제 쓸 수 있나요?</div>
+      <div class="sn-body">조명 색을 오래 유지하는 곡에서 활용하기 좋아요. 원하는 분위기를 설명해서 문의하면 방송부가 판단해드려요.</div>
+      <div class="sn-eg">"Like Jennie에서 좀더 화려한 사이키 사용이 가능한가요?" 식으로 문의해주세요!</div>
+    </div>
+    <button class="goto-lights" onclick="go('s-lights')" style="animation-delay:.15s;">
+      <div class="gtl-left"><div class="gtl-label">바로 확인하기</div><div class="gtl-val">조명 번호표 보러 가기</div></div>
+      <div class="gtl-arrow">›</div>
+    </button>
+    <div class="contact-row" style="animation:fadeUp .4s .2s both;">
+      <a class="contact-btn-ig" href="https://www.instagram.com/hyukjun._.ps?igsh=Nng5MnYydjVuNTd1" target="_blank">
+        <div><div class="cb-label">인스타그램</div><div class="cb-val">@hyukjun._.ps</div></div>
+        <div class="cb-arrow">↗</div>
+      </a>
+      <div class="contact-btn-kt" onclick="alert('카카오톡 개인톡으로 방송부원에게 문의해주세요!')">
+        <div><div class="cb-label-dark">카카오톡</div><div class="cb-val-dark">개인톡 문의</div></div>
+        <div class="cb-arrow-dark">💬</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const LIGHTS=[
+  {n:'1',name:'전체',color:'흰색',bg:'#F0F0F0',tc:'#191919',dot:'background:#E0E0E0;border:.5px solid #CCC',note:'색 조명과 조합 추천',g:'기본'},
+  {n:'2',name:'앞',color:'',bg:'#F0F0F0',tc:'#777',dot:'background:#C8C8C8',note:'색 조명 조합 불가',g:'기본'},
+  {n:'3',name:'원쪽',color:'',bg:'#F0F0F0',tc:'#777',dot:'background:#C8C8C8',note:'색 조명 조합 불가',g:'기본'},
+  {n:'4',name:'중앙',color:'',bg:'#F0F0F0',tc:'#777',dot:'background:#C8C8C8',note:'색 조명 조합 불가',g:'기본'},
+  {n:'5',name:'오른쪽',color:'',bg:'#F0F0F0',tc:'#777',dot:'background:#C8C8C8',note:'색 조명 조합 불가',g:'기본'},
+  {n:'14',name:'사이키',color:'',bg:'#191919',tc:'#fff',dot:'background:#191919',note:'14 + 색번호 조합 가능',g:'기본'},
+  {n:'6',name:'빨강',color:'빨강',bg:'#FFEAEA',tc:'#C0392B',dot:'background:#E74C3C',note:'',g:'색 조명'},
+  {n:'7',name:'초록',color:'초록',bg:'#E8F8EE',tc:'#1A7A3C',dot:'background:#27AE60',note:'',g:'색 조명'},
+  {n:'8',name:'노랑',color:'노랑',bg:'#FFFBE6',tc:'#9A7200',dot:'background:#F1C40F',note:'',g:'색 조명'},
+  {n:'9',name:'연한 보라',color:'보라',bg:'#F0EAFF',tc:'#6B3FA0',dot:'background:#9B59B6',note:'',g:'색 조명'},
+  {n:'10',name:'파랑',color:'파랑',bg:'#E6F2FF',tc:'#1A5FA0',dot:'background:#3498DB',note:'',g:'색 조명'},
+  {n:'11',name:'핑크',color:'핑크',bg:'#FFF0F8',tc:'#B0306A',dot:'background:#E91E8C',note:'',g:'색 조명'},
+  {n:'12',name:'보라',color:'보라',bg:'#EDE8FF',tc:'#5B3DB0',dot:'background:#8E44AD',note:'',g:'색 조명'},
+  {n:'13',name:'남색',color:'남색',bg:'#E6EAF5',tc:'#1E3A8A',dot:'background:#2C3E8C',note:'',g:'색 조명'},
+];
+
+function renderLights(data){
+  const body=document.getElementById('lights-body');
+  if(!data.length){body.innerHTML='<div class="no-result">검색 결과가 없어요 😅<br><span style="font-size:12px;">번호나 색 이름으로 검색해보세요</span></div>';return;}
+  const groups={};
+  data.forEach(l=>{if(!groups[l.g])groups[l.g]=[];groups[l.g].push(l);});
+  let html='';
+  let delay=0;
+  Object.entries(groups).forEach(([g,items])=>{
+    html+=`<div class="sec-label">${g}</div><div class="light-group">`;
+    items.forEach(l=>{
+      html+=`<div class="lri" style="animation-delay:${delay}s">
+        <div class="lri-l">
+          <div class="lri-badge" style="background:${l.bg};color:${l.tc};">${l.n}</div>
+          <div>
+            <div class="lri-name">${l.name}${l.color?' · '+l.color:''}</div>
+            ${l.note?`<div class="lri-note">${l.note}</div>`:''}
+          </div>
+        </div>
+        <div class="lri-dot" style="${l.dot};"></div>
+      </div>`;
+      delay+=0.03;
+    });
+    html+='</div>';
+  });
+  body.innerHTML=html;
+}
+
+function filterLights(q){
+  const cl=document.getElementById('lclr');
+  cl.style.display=q?'flex':'none';
+  if(!q.trim()){renderLights(LIGHTS);return;}
+  const s=q.toLowerCase();
+  renderLights(LIGHTS.filter(l=>l.n.includes(s)||l.name.includes(s)||l.color.includes(s)||l.note.includes(s)));
+}
+
+function clearLS(){
+  const inp=document.getElementById('lsearch');
+  inp.value='';filterLights('');inp.focus();
+}
+
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  el.classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='s-lights')renderLights(LIGHTS);
+}
+
+renderLights(LIGHTS);
+</script>
+</body>
+</html>
